@@ -43,6 +43,7 @@ services:
       PORT: 3000
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@database:3306/${MYSQL_DATABASE}
       SHADOW_DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@database:3306/${MYSQL_DATABASE}_shadow
+      JWT_SECRET: ${JWT_SECRET}
 
     ports:
       - "${API_PORT:-3000}:3000"
