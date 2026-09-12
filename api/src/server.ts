@@ -1,5 +1,8 @@
 import express, { type Request, type Response } from "express";
 
+import { prisma } from "./lib/prisma.js";
+import { authRouter } from "./routes/auth.routes.js";
+
 const app = express();
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -12,6 +15,30 @@ app.get("/health", (_request: Request, response: Response) => {
     message: "Creno API is running",
   });
 });
+
+app.get(
+  "/health/database",
+  async (_request: Request, response: Response) => {
+    try {
+      const usersCount = await prisma.user.count();
+
+      response.status(200).json({
+        status: "ok",
+        database: "connected",
+        usersCount,
+      });
+    } catch (error) {
+      console.error(error);
+
+      response.status(500).json({
+        status: "error",
+        database: "disconnected",
+      });
+    }
+  },
+);
+
+app.use("/auth", authRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Creno API démarrée sur le port ${PORT}`);
