@@ -18,3 +18,6 @@
 # Logs
 *.log
 npm-debug.log*
+
+# Client Prisma généré
+api/src/generated/
