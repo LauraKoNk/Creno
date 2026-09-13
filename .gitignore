@@ -21,3 +21,6 @@ npm-debug.log*
 
 # Client Prisma généré
 api/src/generated/
+
+# VS Code settings
+.vscode/
