@@ -12,27 +12,55 @@ type ApiErrorResponse = {
   message?: string;
 };
 
+type ApiFetchOptions = RequestInit & {
+  token?: string;
+};
+
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {},
+  options: ApiFetchOptions = {},
 ): Promise<T> {
-  const headers = new Headers(options.headers);
+  const {
+    token,
+    ...requestOptions
+  } = options;
 
-  if (!headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  const headers = new Headers(
+    requestOptions.headers,
+  );
+
+  if (
+    requestOptions.body &&
+    !headers.has("Content-Type")
+  ) {
+    headers.set(
+      "Content-Type",
+      "application/json",
+    );
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  if (token) {
+    headers.set(
+      "Authorization",
+      `Bearer ${token}`,
+    );
+  }
+
+  const response = await fetch(
+    `${API_URL}${path}`,
+    {
+      ...requestOptions,
+      headers,
+    },
+  );
 
   const data = await response
     .json()
     .catch(() => null);
 
   if (!response.ok) {
-    const error = data as ApiErrorResponse | null;
+    const error =
+      data as ApiErrorResponse | null;
 
     throw new Error(
       error?.message ??
