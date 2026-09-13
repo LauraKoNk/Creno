@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { studioRouter } from "./routes/studio.routes.js";
 import { courseRouter } from "./routes/course.routes.js";
 import { reservationRouter } from "./routes/reservation.routes.js";
+import { paymentRouter } from "./routes/payment.routes.js";
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use(
   "/reservations",
   reservationRouter,
 );
+app.use("/payments", paymentRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Creno API démarrée sur le port ${PORT}`);
