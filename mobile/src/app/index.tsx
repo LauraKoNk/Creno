@@ -12,6 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CourseCard } from "../components/CourseCard";
 import { apiFetch } from "../services/api";
+import { router } from "expo-router";
+import { useAuth } from "../contexts/AuthContext";
 import type {
   CoursesResponse,
   PublicCourse,
@@ -19,6 +21,7 @@ import type {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   const [courses, setCourses] = useState<
     PublicCourse[]
@@ -78,15 +81,40 @@ export default function HomeScreen() {
       <StatusBar style="dark" />
 
       <View className="px-6 pb-4 pt-6">
-        <Text
-          style={{
-            color: "#111111",
-            fontSize: 30,
-            fontWeight: "800",
-          }}
-        >
-          CRÉNO
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text
+            style={{
+              color: "#111111",
+              fontSize: 30,
+              fontWeight: "800",
+            }}
+          >
+            CRÉNO
+          </Text>
+
+          <TouchableOpacity
+            className="rounded-full bg-neutral-100 px-4 py-3"
+            onPress={() =>
+              router.push(
+                user
+                  ? "/account"
+                  : "/login",
+              )
+            }
+          >
+            <Text
+              style={{
+                color: "#111111",
+                fontSize: 14,
+                fontWeight: "700",
+              }}
+            >
+              {user
+                ? user.firstName
+                : "Se connecter"}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Text
           style={{
