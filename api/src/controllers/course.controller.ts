@@ -154,32 +154,65 @@ export async function getPublicCourses(
   response: Response,
 ) {
   try {
-    const courses = await prisma.course.findMany({
-      where: {
-        status: "PUBLISHED",
+    const courses =
+      await prisma.course.findMany({
+        where: {
+          status: "PUBLISHED",
 
-        startAt: {
-          gte: new Date(),
-        },
-      },
-
-      include: {
-        studio: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
+          startAt: {
+            gte: new Date(),
           },
         },
-      },
 
-      orderBy: {
-        startAt: "asc",
-      },
-    });
+        include: {
+          studio: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+            },
+          },
+
+          _count: {
+            select: {
+              reservations: {
+                where: {
+                  status: {
+                    in: [
+                      "PENDING",
+                      "PAID",
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        orderBy: {
+          startAt: "asc",
+        },
+      });
+
+    const coursesWithAvailability =
+      courses.map(
+        ({
+          _count,
+          ...course
+        }) => ({
+          ...course,
+
+          availablePlaces: Math.max(
+            course.capacity -
+              _count.reservations,
+            0,
+          ),
+        }),
+      );
 
     return response.status(200).json({
-      courses,
+      courses:
+        coursesWithAvailability,
     });
   } catch (error) {
     console.error(
@@ -188,7 +221,8 @@ export async function getPublicCourses(
     );
 
     return response.status(500).json({
-      message: "Une erreur interne est survenue.",
+      message:
+        "Une erreur interne est survenue.",
     });
   }
 }
@@ -202,29 +236,46 @@ export async function getCourseById(
 
     if (typeof id !== "string") {
       return response.status(400).json({
-        message: "Identifiant de cours invalide.",
+        message:
+          "Identifiant de cours invalide.",
       });
     }
 
-    const course = await prisma.course.findFirst({
-      where: {
-        id,
-        status: "PUBLISHED",
-      },
+    const course =
+      await prisma.course.findFirst({
+        where: {
+          id,
+          status: "PUBLISHED",
+        },
 
-      include: {
-        studio: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            address: true,
-            postalCode: true,
-            city: true,
+        include: {
+          studio: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              address: true,
+              postalCode: true,
+              city: true,
+            },
+          },
+
+          _count: {
+            select: {
+              reservations: {
+                where: {
+                  status: {
+                    in: [
+                      "PENDING",
+                      "PAID",
+                    ],
+                  },
+                },
+              },
+            },
           },
         },
-      },
-    });
+      });
 
     if (!course) {
       return response.status(404).json({
@@ -232,8 +283,21 @@ export async function getCourseById(
       });
     }
 
+    const {
+      _count,
+      ...courseData
+    } = course;
+
     return response.status(200).json({
-      course,
+      course: {
+        ...courseData,
+
+        availablePlaces: Math.max(
+          course.capacity -
+            _count.reservations,
+          0,
+        ),
+      },
     });
   } catch (error) {
     console.error(
@@ -242,7 +306,8 @@ export async function getCourseById(
     );
 
     return response.status(500).json({
-      message: "Une erreur interne est survenue.",
+      message:
+        "Une erreur interne est survenue.",
     });
   }
 }
@@ -299,36 +364,66 @@ export async function updateCourse(
       });
     }
 
+    // Si l'owner veut modifier la capacité,
+    // on vérifie qu'elle ne devient pas inférieure
+    // au nombre de réservations actives.
+    if (validation.data.capacity !== undefined) {
+      const occupiedPlaces =
+        await prisma.reservation.count({
+          where: {
+            courseId: existingCourse.id,
+
+            status: {
+              in: [
+                "PENDING",
+                "PAID",
+              ],
+            },
+          },
+        });
+
+      if (
+        validation.data.capacity <
+        occupiedPlaces
+      ) {
+        return response.status(409).json({
+          message:
+            `La capacité ne peut pas être inférieure aux ${occupiedPlaces} réservations actives.`,
+        });
+      }
+    }
+
     const {
       startAt,
       ...otherFields
     } = validation.data;
 
-    const course = await prisma.course.update({
-      where: {
-        id: existingCourse.id,
-      },
+    const course =
+      await prisma.course.update({
+        where: {
+          id: existingCourse.id,
+        },
 
-      data: {
-        ...otherFields,
+        data: {
+          ...otherFields,
 
-        ...(startAt
-          ? {
-              startAt: new Date(startAt),
-            }
-          : {}),
-      },
+          ...(startAt
+            ? {
+                startAt: new Date(startAt),
+              }
+            : {}),
+        },
 
-      include: {
-        studio: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
+        include: {
+          studio: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+            },
           },
         },
-      },
-    });
+      });
 
     return response.status(200).json({
       message: "Cours modifié avec succès.",

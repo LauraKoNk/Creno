@@ -10,11 +10,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAuth } from "../../contexts/AuthContext";
 import { apiFetch } from "../../services/api";
 import type {
   CourseDetail,
   CourseResponse,
 } from "../../types/course";
+import type { CreateReservationResponse } from "../../types/reservation";
 import {
   formatCourseDate,
   formatPrice,
@@ -26,21 +28,36 @@ export default function CourseDetailScreen() {
   const params =
     useLocalSearchParams<{ id: string }>();
 
+  const {
+    user,
+    token,
+  } = useAuth();
+
   const [course, setCourse] =
     useState<CourseDetail | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [error, setError] = useState<
-    string | null
-  >(null);
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [booking, setBooking] =
+    useState(false);
+
+  const [
+    bookingError,
+    setBookingError,
+  ] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCourse() {
       const id = params.id;
 
       if (typeof id !== "string") {
-        setError("Identifiant de cours invalide.");
+        setError(
+          "Identifiant de cours invalide.",
+        );
         setLoading(false);
         return;
       }
@@ -65,6 +82,43 @@ export default function CourseDetailScreen() {
 
     loadCourse();
   }, [params.id]);
+
+  async function handleReservation() {
+    if (!user || !token) {
+      router.push("/login");
+      return;
+    }
+
+    if (!course) {
+      return;
+    }
+
+    try {
+      setBooking(true);
+      setBookingError(null);
+
+      await apiFetch<CreateReservationResponse>(
+        "/reservations",
+        {
+          method: "POST",
+          token,
+          body: JSON.stringify({
+            courseId: course.id,
+          }),
+        },
+      );
+
+      router.push("/reservations");
+    } catch (err) {
+      setBookingError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de réserver ce cours.",
+      );
+    } finally {
+      setBooking(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -220,7 +274,9 @@ export default function CourseDetailScreen() {
               marginTop: 6,
             }}
           >
-            {formatCourseDate(course.startAt)}
+            {formatCourseDate(
+              course.startAt,
+            )}
           </Text>
         </View>
 
@@ -253,7 +309,7 @@ export default function CourseDetailScreen() {
               fontWeight: "700",
             }}
           >
-            Capacité
+            Places
           </Text>
 
           <Text
@@ -262,7 +318,13 @@ export default function CourseDetailScreen() {
               marginTop: 6,
             }}
           >
-            {course.capacity} places
+            {course.availablePlaces === 0
+              ? "Complet"
+              : `${course.availablePlaces} ${
+                  course.availablePlaces > 1
+                    ? "places disponibles"
+                    : "place disponible"
+                }`}
           </Text>
         </View>
 
@@ -290,17 +352,80 @@ export default function CourseDetailScreen() {
           </View>
         ) : null}
 
-        <View className="mt-10 rounded-2xl border border-neutral-200 p-5">
+        <View className="mt-10">
           <Text
             style={{
-              color: "#737373",
+              color: "#525252",
               fontSize: 14,
               textAlign: "center",
+              marginBottom: 12,
             }}
           >
-            La réservation sera ajoutée à
-            la prochaine étape.
+            {course.availablePlaces === 0
+              ? "Ce cours est complet."
+              : `${course.availablePlaces} ${
+                  course.availablePlaces > 1
+                    ? "places disponibles"
+                    : "place disponible"
+                }`}
           </Text>
+
+          {bookingError ? (
+            <View className="mb-4 rounded-xl bg-neutral-100 p-4">
+              <Text
+                style={{
+                  color: "#B91C1C",
+                  textAlign: "center",
+                }}
+              >
+                {bookingError}
+              </Text>
+            </View>
+          ) : null}
+
+          <TouchableOpacity
+            className={
+              course.availablePlaces === 0
+                ? "items-center rounded-xl bg-neutral-200 py-4"
+                : "items-center rounded-xl bg-creno-lime py-4"
+            }
+            disabled={
+              booking ||
+              course.availablePlaces === 0
+            }
+            onPress={handleReservation}
+          >
+            {booking ? (
+              <ActivityIndicator />
+            ) : (
+              <Text
+                style={{
+                  color: "#111111",
+                  fontSize: 16,
+                  fontWeight: "700",
+                }}
+              >
+                {course.availablePlaces === 0
+                  ? "Complet"
+                  : "Réserver"}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {!user &&
+          course.availablePlaces > 0 ? (
+            <Text
+              style={{
+                color: "#737373",
+                fontSize: 13,
+                textAlign: "center",
+                marginTop: 10,
+              }}
+            >
+              Tu devras te connecter pour
+              réserver.
+            </Text>
+          ) : null}
         </View>
       </ScrollView>
     </View>

@@ -95,7 +95,12 @@ export function CourseCard({
                 }}
             >
                 {course.durationMinutes} min ·{" "}
-                {course.capacity} places
+                {course.availablePlaces === 0
+                    ? "Complet"
+                    : `${course.availablePlaces} ${course.availablePlaces > 1
+                        ? "places restantes"
+                        : "place restante"
+                    }`}
             </Text>
         </TouchableOpacity>
     );

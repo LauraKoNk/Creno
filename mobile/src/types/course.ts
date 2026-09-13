@@ -14,6 +14,7 @@ export type PublicCourse = {
   durationMinutes: number;
   priceCents: number;
   capacity: number;
+  availablePlaces: number;
   status: "PUBLISHED";
   createdAt: string;
   updatedAt: string;
