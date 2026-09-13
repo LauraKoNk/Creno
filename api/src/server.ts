@@ -3,6 +3,7 @@ import express, { type Request, type Response } from "express";
 import { prisma } from "./lib/prisma.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { studioRouter } from "./routes/studio.routes.js";
+import { courseRouter } from "./routes/course.routes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.get(
 
 app.use("/auth", authRouter);
 app.use("/studios", studioRouter);
+app.use("/courses", courseRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Creno API démarrée sur le port ${PORT}`);
