@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "db:seed": "tsx prisma/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "prisma generate && tsx watch src/server.ts",
     "build": "tsc",
