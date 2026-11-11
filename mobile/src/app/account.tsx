@@ -89,7 +89,9 @@ export default function AccountScreen() {
 
       <TouchableOpacity
         onPress={() =>
-          router.back()
+          router.canGoBack()
+            ? router.back()
+            : router.replace("/")
         }
         className="mb-10 self-start rounded-xl bg-neutral-100 px-4 py-3"
       >

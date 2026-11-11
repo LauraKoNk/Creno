@@ -339,7 +339,9 @@ export default function CourseDetailScreen() {
         <TouchableOpacity
           className="mt-6 rounded-xl bg-creno-lime px-6 py-4"
           onPress={() =>
-            router.back()
+            router.canGoBack()
+              ? router.back()
+              : router.replace("/")
           }
         >
           <Text
@@ -370,7 +372,9 @@ export default function CourseDetailScreen() {
       >
         <TouchableOpacity
           onPress={() =>
-            router.back()
+            router.canGoBack()
+              ? router.back()
+              : router.replace("/")
           }
           className="mb-8 self-start rounded-xl bg-neutral-100 px-4 py-3"
         >

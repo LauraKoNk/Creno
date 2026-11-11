@@ -1,4 +1,7 @@
-import { PropsWithChildren } from "react";
+import {
+  PropsWithChildren,
+  ReactElement,
+} from "react";
 import { StripeProvider } from "@stripe/stripe-react-native";
 
 function getStripePublishableKey(): string {
@@ -19,14 +22,14 @@ const stripePublishableKey =
 
 export default function AppStripeProvider({
   children,
-}: PropsWithChildren) {
+}: PropsWithChildren): ReactElement {
   return (
     <StripeProvider
       publishableKey={
         stripePublishableKey
       }
     >
-      {children}
+      <>{children}</>
     </StripeProvider>
   );
 }
