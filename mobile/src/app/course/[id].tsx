@@ -1,7 +1,7 @@
 import {
   PaymentSheetError,
   useStripe,
-} from "@stripe/stripe-react-native";
+} from "../../services/stripe";
 import {
   router,
   useLocalSearchParams,
@@ -14,6 +14,7 @@ import {
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -40,6 +41,8 @@ import {
 export default function CourseDetailScreen() {
   const insets =
     useSafeAreaInsets();
+
+  const isWeb = Platform.OS === "web";
 
   const params =
     useLocalSearchParams<{
@@ -186,7 +189,7 @@ export default function CourseDetailScreen() {
 
       const {
         error:
-          initializationError,
+        initializationError,
       } =
         await initPaymentSheet({
           merchantDisplayName:
@@ -220,7 +223,7 @@ export default function CourseDetailScreen() {
 
       const {
         error:
-          stripePaymentError,
+        stripePaymentError,
       } =
         await presentPaymentSheet();
 
@@ -509,14 +512,13 @@ export default function CourseDetailScreen() {
             }}
           >
             {course.availablePlaces ===
-            0
+              0
               ? "Complet"
-              : `${course.availablePlaces} ${
-                  course.availablePlaces >
-                  1
-                    ? "places disponibles"
-                    : "place disponible"
-                }`}
+              : `${course.availablePlaces} ${course.availablePlaces >
+                1
+                ? "places disponibles"
+                : "place disponible"
+              }`}
           </Text>
         </View>
 
@@ -552,8 +554,7 @@ export default function CourseDetailScreen() {
               <Text
                 style={{
                   color: "#B91C1C",
-                  textAlign:
-                    "center",
+                  textAlign: "center",
                 }}
               >
                 {paymentError}
@@ -563,36 +564,34 @@ export default function CourseDetailScreen() {
 
           <TouchableOpacity
             className={
-              course.availablePlaces ===
-              0
+              isWeb ||
+                course.availablePlaces === 0
                 ? "items-center rounded-xl bg-neutral-200 py-4"
                 : "items-center rounded-xl bg-creno-lime py-4"
             }
             disabled={
+              isWeb ||
               paying ||
-              course.availablePlaces ===
-                0
+              course.availablePlaces <= 0
             }
-            onPress={
-              handlePayment
-            }
+            onPress={handlePayment}
           >
             {paying ? (
               <ActivityIndicator />
             ) : (
               <Text
                 style={{
-                  color:
-                    "#111111",
+                  color: "#111111",
                   fontSize: 16,
-                  fontWeight:
-                    "700",
+                  fontWeight: "700",
+                  textAlign: "center",
                 }}
               >
-                {course.availablePlaces ===
-                0
-                  ? "Complet"
-                  : `Payer ${formatPrice(
+                {isWeb
+                  ? "Paiement disponible sur l'application mobile"
+                  : course.availablePlaces <= 0
+                    ? "Complet"
+                    : `Payer ${formatPrice(
                       course.priceCents,
                     )}`}
               </Text>
@@ -600,19 +599,16 @@ export default function CourseDetailScreen() {
           </TouchableOpacity>
 
           {!user &&
-          course.availablePlaces >
-            0 ? (
+            course.availablePlaces > 0 ? (
             <Text
               style={{
                 color: "#737373",
                 fontSize: 13,
-                textAlign:
-                  "center",
+                textAlign: "center",
                 marginTop: 10,
               }}
             >
-              Tu devras te
-              connecter pour payer.
+              Tu devras te connecter pour payer.
             </Text>
           ) : null}
         </View>
