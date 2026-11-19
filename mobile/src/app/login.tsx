@@ -82,7 +82,11 @@ export default function LoginScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace("/")
+          }
           className="mb-10 self-start rounded-xl bg-neutral-100 px-4 py-3"
         >
           <Text

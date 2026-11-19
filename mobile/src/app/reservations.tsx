@@ -160,7 +160,11 @@ export default function ReservationsScreen() {
       <View className="px-6 pb-5 pt-5">
         <TouchableOpacity
           className="mb-7 self-start rounded-xl bg-neutral-100 px-4 py-3"
-          onPress={() => router.back()}
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace("/account")
+          }
         >
           <Text
             style={{

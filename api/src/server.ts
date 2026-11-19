@@ -6,10 +6,39 @@ import { studioRouter } from "./routes/studio.routes.js";
 import { courseRouter } from "./routes/course.routes.js";
 import { reservationRouter } from "./routes/reservation.routes.js";
 import { paymentRouter } from "./routes/payment.routes.js";
+import cors from "cors";
 
 const app = express();
 
 const PORT = Number(process.env.PORT) || 3000;
+
+const corsOrigin =
+  process.env.CORS_ORIGIN;
+
+if (!corsOrigin) {
+  throw new Error(
+    "CORS_ORIGIN est manquante.",
+  );
+}
+
+app.use(
+  cors({
+    origin: corsOrigin,
+
+    methods: [
+      "GET",
+      "POST",
+      "PATCH",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
+  }),
+);
 
 app.use(express.json());
 

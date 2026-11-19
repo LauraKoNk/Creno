@@ -243,7 +243,11 @@ export default function EditStudioScreen() {
         <TouchableOpacity
           className="mb-8 self-start rounded-xl bg-neutral-100 px-4 py-3"
           onPress={() =>
-            router.back()
+            router.canGoBack()
+              ? router.back()
+              : router.replace(
+                  "/studio-dashboard",
+                )
           }
         >
           <Text
